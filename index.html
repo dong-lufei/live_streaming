@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>live_streaming</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      video {
+        display: block;
+      }
+      canvas {
+        position: absolute;
+      }
+    </style>
+  </head>
+  <body>
+    <video id="video" autoplay muted width="640" height="480"></video>
+
+    <script type="module">
+      import faceApi from "https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/+esm"
+      const MODEL_PATH =
+        "https://github.com/justadudewhohacks/face-api.js/tree/master/weights/"
+      const video = document.getElementById("video")
+
+      async function getCamera() {
+        try {
+          console.log(567, navigator)
+          alert(navigator.mediaDevices)
+          const mediaStream = await navigator.mediaDevices.getUserMedia({
+            video: true,
+          })
+          video.srcObject = mediaStream
+        } catch (e) {
+          console.error(e)
+        }
+      }
+
+      async function loadModels() {
+        // await faceApi.loadTinyFaceDetectorModel(MODEL_PATH)
+        // await faceApi.loadFaceLandmarkTinyModel(MODEL_PATH)
+        // await faceApi.loadFaceExpressionModel(MODEL_PATH)
+        // await faceApi.loadAgeGenderModel(MODEL_PATH)
+        getCamera()
+      }
+
+      async function detectFace() {
+        const canvas = faceApi.createCanvasFromMedia(video)
+        const ctx = canvas.getContext("2d")
+        const width = video.width
+        const height = video.height
+
+        document.body.append(canvas)
+        // faceApi.matchDimensions(canvas, { width, height });
+
+        setInterval(async () => {
+          const detections = await faceApi
+            .detectAllFaces(video, new faceApi.TinyFaceDetectorOptions())
+            .withFaceLandmarks(true)
+            .withFaceExpressions()
+            .withAgeAndGender()
+          const resizedDetections = faceApi.resizeResults(detections, {
+            width,
+            height,
+          })
+
+          ctx.clearRect(0, 0, width, height)
+          faceApi.draw.drawDetections(canvas, resizedDetections)
+          faceApi.draw.drawFaceLandmarks(canvas, resizedDetections)
+          faceApi.draw.drawFaceExpressions(canvas, resizedDetections)
+
+          resizedDetections.forEach(result => {
+            const { age, gender, genderProbability } = result
+            new faceApi.draw.DrawTextField(
+              [`${~~age} years`, `${gender} (${genderProbability.toFixed(1)})`],
+              result.detection.box.bottomRight,
+            ).draw(canvas)
+          })
+        }, 300)
+      }
+
+      video.addEventListener("play", detectFace)
+
+      loadModels()
+    </script>
+  </body>
+</html>
