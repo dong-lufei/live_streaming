@@ -34,14 +34,15 @@
 
       async function getCamera() {
         try {
-          console.log(567, navigator)
-          alert(navigator.mediaDevices)
+          // alert(navigator.mediaDevices)
+          // 获取视频设备
           const mediaStream = await navigator.mediaDevices.getUserMedia({
-            video: true,
+            video: true, //启用视频流
           })
           video.srcObject = mediaStream
         } catch (e) {
-          console.error(e)
+          alert("您的设备没有摄像头，请用手机打开试试")
+          console.error("catch-getCamera", e)
         }
       }
 
@@ -49,7 +50,7 @@
         // await faceApi.loadTinyFaceDetectorModel(MODEL_PATH)
         // await faceApi.loadFaceLandmarkTinyModel(MODEL_PATH)
         // await faceApi.loadFaceExpressionModel(MODEL_PATH)
-        await faceApi.loadAgeGenderModel(MODEL_PATH)
+        // await faceApi.loadAgeGenderModel(MODEL_PATH)
         getCamera()
       }
 
